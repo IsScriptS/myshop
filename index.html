@@ -137,7 +137,6 @@
             gap: 6px;
         }
 
-        /* Контейнер */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -164,7 +163,6 @@
             }
         }
 
-        /* Карточки товаров */
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -212,6 +210,20 @@
             opacity: 0.8;
         }
 
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-success:hover {
+            opacity: 0.8;
+        }
+
         .sell-form {
             background: var(--bg-card);
             padding: 24px;
@@ -236,6 +248,10 @@
         .sell-form textarea {
             min-height: 80px;
             resize: vertical;
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         .products-grid {
@@ -290,7 +306,6 @@
             color: var(--accent);
         }
 
-        /* Детали товара */
         .product-detail {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -358,7 +373,6 @@
             letter-spacing: 2px;
         }
 
-        /* Профиль */
         .profile-header {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -389,6 +403,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .balance-actions input {
@@ -454,7 +469,10 @@
             color: white;
         }
 
-        /* Чат */
+        .btn-delete:hover {
+            opacity: 0.8;
+        }
+
         .chat-layout {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -641,10 +659,6 @@
             opacity: 0.5;
         }
 
-        .hidden {
-            display: none !important;
-        }
-
         .toast {
             position: fixed;
             bottom: 20px;
@@ -709,7 +723,7 @@
                 <a data-page="profile"><i class="fas fa-user"></i> Профиль</a>
                 <a data-page="chat"><i class="fas fa-comment-dots"></i> Чаты <span id="chatBadge" style="background:red;color:white;border-radius:50%;padding:0 6px;font-size:12px;display:none;">0</span></a>
                 <button class="theme-btn" id="themeToggle"><i class="fas fa-moon"></i></button>
-                <span class="user-badge"><i class="fas fa-id-card"></i> ID: <span id="currentUserIdDisplay">2</span></span>
+                <span class="user-badge"><i class="fas fa-id-card"></i> <span id="currentUserIdDisplay">Вы</span></span>
             </div>
         </div>
     </nav>
@@ -749,7 +763,7 @@
             <div class="profile-header">
                 <div>
                     <h2><i class="fas fa-user-circle"></i> Мой профиль</h2>
-                    <p style="color:var(--text-secondary);">ID: <strong id="profileUserId">2</strong></p>
+                    <p style="color:var(--text-secondary);">Продавец: <strong id="profileUserName">Вы</strong></p>
                 </div>
                 <div>
                     <div class="profile-balance">
@@ -757,7 +771,7 @@
                     </div>
                     <div class="balance-actions" style="margin-top:8px;">
                         <input type="number" id="addBalanceInput" placeholder="Сумма" value="100">
-                        <button class="btn-primary" id="addBalanceBtn"><i class="fas fa-plus"></i> Пополнить</button>
+                        <button class="btn-success" id="addBalanceBtn"><i class="fas fa-plus"></i> Пополнить</button>
                     </div>
                 </div>
             </div>
@@ -800,63 +814,90 @@
 
     </div>
 
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         // =====================================================
-        // ====== ВСЯ ЛОГИКА ======
+        // ====== ВСЯ ЛОГИКА РАБОТАЕТ С LOCALSTORAGE ======
         // =====================================================
 
-        const CURRENT_USER = 2;
-
-        // ---------- СОКЕТ ----------
-        const socket = io('http://localhost:3000');
-
-        // ---------- DOM ----------
-        const $ = id => document.getElementById(id);
-        const pages = {
-            home: $('page-home'),
-            product: $('page-product'),
-            profile: $('page-profile'),
-            chat: $('page-chat')
-        };
-
-        // ---------- ТЕМА ----------
-        let darkMode = localStorage.getItem('theme') === 'dark';
-        if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
-        $('themeToggle').addEventListener('click', () => {
-            darkMode = !darkMode;
-            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : '');
-            localStorage.setItem('theme', darkMode ? 'dark' : '');
-            $('themeToggle').innerHTML = `<i class="fas fa-${darkMode ? 'sun' : 'moon'}"></i>`;
-        });
-
-        // ---------- НАВИГАЦИЯ ----------
-        function navigateTo(page, data) {
-            Object.values(pages).forEach(p => p.classList.remove('active'));
-            if (pages[page]) pages[page].classList.add('active');
-
-            document.querySelectorAll('.nav-links a[data-page]').forEach(a => a.classList.remove('active'));
-            const link = document.querySelector(`.nav-links a[data-page="${page}"]`);
-            if (link) link.classList.add('active');
-
-            if (page === 'home') loadProducts();
-            if (page === 'profile') loadProfile();
-            if (page === 'chat') loadChats();
-            if (page === 'product' && data) loadProductDetail(data);
+        // ---------- БАЗА ДАННЫХ В LOCALSTORAGE ----------
+        function getDB() {
+            const data = localStorage.getItem('roblox_market_db');
+            if (data) {
+                try {
+                    return JSON.parse(data);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
         }
 
-        document.querySelectorAll('.nav-links a[data-page]').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                navigateTo(link.dataset.page);
-            });
-        });
+        function saveDB(db) {
+            localStorage.setItem('roblox_market_db', JSON.stringify(db));
+        }
 
-        document.querySelectorAll('.back-btn[data-page]').forEach(btn => {
-            btn.addEventListener('click', () => navigateTo(btn.dataset.page));
-        });
+        // Инициализация базы
+        let db = getDB();
+        if (!db) {
+            db = {
+                users: [
+                    { id: 1, name: 'Продавец' }
+                ],
+                products: [{
+                    id: 1,
+                    name: 'Админка в Blox Fruits',
+                    description: 'Полный доступ к админ-панели, все фрукты, деньги и титулы.',
+                    game: 'Blox Fruits',
+                    price: 2500,
+                    image: 'https://tr.rbxcdn.com/30DAY-Avatar-1D108468C9B8B231FF09F9D9F80CBF1B-Png/420/420/Avatar/Png/',
+                    sellerId: 1,
+                    createdAt: Date.now()
+                }, {
+                    id: 2,
+                    name: 'Легендарный меч в King Legacy',
+                    description: 'Самый мощный меч в игре. Полный набор скиллов.',
+                    game: 'King Legacy',
+                    price: 1800,
+                    image: 'https://tr.rbxcdn.com/30DAY-Avatar-8A1D17B9C2D8E3F4A5B6C7D8E9F0A1B2-Png/420/420/Avatar/Png/',
+                    sellerId: 1,
+                    createdAt: Date.now()
+                }, {
+                    id: 3,
+                    name: 'Фрукт Дракона в Anime Adventures',
+                    description: 'Редчайший фрукт для прокачки. Даёт +1000 к силе.',
+                    game: 'Anime Adventures',
+                    price: 3200,
+                    image: 'https://tr.rbxcdn.com/30DAY-Avatar-2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F-Png/420/420/Avatar/Png/',
+                    sellerId: 1,
+                    createdAt: Date.now()
+                }],
+                balances: {
+                    '1': 5000
+                },
+                chats: [],
+                reviews: [{
+                    id: 1,
+                    productId: 1,
+                    author: 'Игрок_228',
+                    rating: 5,
+                    text: 'Отличный товар! Всё работает!'
+                }, {
+                    id: 2,
+                    productId: 1,
+                    author: 'ProGamer',
+                    rating: 4,
+                    text: 'Хорошо, но немного дорого.'
+                }],
+                nextProductId: 4,
+                nextChatId: 1,
+                nextReviewId: 3
+            };
+            saveDB(db);
+        }
 
-        // ---------- TOAST ----------
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+        const CURRENT_USER = 1;
+
         function showToast(msg, isError = false) {
             const old = document.querySelector('.toast');
             if (old) old.remove();
@@ -868,271 +909,315 @@
             setTimeout(() => div.remove(), 3000);
         }
 
-        // ---------- API ----------
-        async function api(method, url, body) {
-            try {
-                const opts = { method, headers: { 'Content-Type': 'application/json' } };
-                if (body) opts.body = JSON.stringify(body);
-                const res = await fetch(url, opts);
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'Ошибка запроса');
-                }
-                return await res.json();
-            } catch (e) {
-                showToast('❌ ' + e.message, true);
-                throw e;
-            }
+        function navigateTo(page, data) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById(`page-${page}`);
+            if (target) target.classList.add('active');
+
+            document.querySelectorAll('.nav-links a[data-page]').forEach(a => a.classList.remove('active'));
+            const link = document.querySelector(`.nav-links a[data-page="${page}"]`);
+            if (link) link.classList.add('active');
+
+            if (page === 'home') renderProducts();
+            if (page === 'profile') renderProfile();
+            if (page === 'chat') renderChats();
+            if (page === 'product' && data) renderProductDetail(data);
         }
 
-        // ---------- ЗАГРУЗКА ТОВАРОВ ----------
-        async function loadProducts() {
-            try {
-                const products = await api('GET', '/api/products');
-                if (!products.length) {
-                    $('productsGrid').innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Нет товаров</p></div>`;
-                    return;
-                }
-                $('productsGrid').innerHTML = products.map(p => `
-                    <div class="product-card" onclick="navigateTo('product', ${p.id})">
-                        <img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Roblox'">
-                        <div class="product-info">
-                            <h3>${p.name}</h3>
-                            <p class="game-tag">🎮 ${p.game}</p>
-                            <p class="price">${p.price} R$</p>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) {
-                console.error(e);
+        // ---------- РЕНДЕР ТОВАРОВ ----------
+        function renderProducts() {
+            const products = db.products;
+            if (!products.length) {
+                document.getElementById('productsGrid').innerHTML =
+                    `<div class="empty-state"><i class="fas fa-box-open"></i><p>Нет товаров</p></div>`;
+                return;
             }
+            document.getElementById('productsGrid').innerHTML = products.map(p => `
+                <div class="product-card" onclick="navigateTo('product', ${p.id})">
+                    <img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Roblox'">
+                    <div class="product-info">
+                        <h3>${p.name}</h3>
+                        <p class="game-tag">🎮 ${p.game}</p>
+                        <p class="price">${p.price} R$</p>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // ---------- ДЕТАЛИ ТОВАРА ----------
-        async function loadProductDetail(productId) {
-            try {
-                const data = await api('GET', `/api/products/${productId}`);
-                const seller = data.seller || { name: 'Продавец' };
-                const reviews = data.reviews || [];
-
-                $('productDetailContainer').innerHTML = `
-                    <img src="${data.image}" alt="${data.name}" onerror="this.src='https://via.placeholder.com/600x350?text=Roblox'">
-                    <h2>${data.name}</h2>
-                    <p style="color:var(--text-secondary);">🎮 ${data.game}</p>
-                    <p style="font-size:16px;margin:12px 0;">${data.description}</p>
-                    <div class="price-big">${data.price} R$</div>
-
-                    <div class="seller-info">
-                        <div class="seller-avatar">${seller.name[0].toUpperCase()}</div>
-                        <div>
-                            <div style="font-weight:600;">${seller.name}</div>
-                            <small style="color:var(--text-secondary);">ID: ${seller.id}</small>
-                        </div>
-                    </div>
-
-                    <button class="btn-primary" id="buyProductBtn" style="margin-top:16px;width:100%;">
-                        <i class="fas fa-shopping-cart"></i> Купить за ${data.price} R$
-                    </button>
-
-                    <div class="reviews-section">
-                        <h4>⭐ Отзывы (${reviews.length})</h4>
-                        ${reviews.length ? reviews.map(r => `
-                            <div class="review-item">
-                                <div class="review-author">${r.author}</div>
-                                <div class="rating-stars">${'⭐'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
-                                <p>${r.text}</p>
-                            </div>
-                        `).join('') : '<p style="color:var(--text-secondary);">Нет отзывов</p>'}
-                    </div>
-                `;
-
-                $('buyProductBtn')?.addEventListener('click', () => buyProduct(productId));
-            } catch (e) {
-                console.error(e);
+        // ---------- РЕНДЕР ДЕТАЛЕЙ ТОВАРА ----------
+        function renderProductDetail(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product) {
+                document.getElementById('productDetailContainer').innerHTML = '<p>Товар не найден</p>';
+                return;
             }
+
+            const seller = db.users.find(u => u.id === product.sellerId) || { name: 'Продавец' };
+            const reviews = db.reviews.filter(r => r.productId === productId);
+
+            document.getElementById('productDetailContainer').innerHTML = `
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/600x350?text=Roblox'">
+                <h2>${product.name}</h2>
+                <p style="color:var(--text-secondary);">🎮 ${product.game}</p>
+                <p style="font-size:16px;margin:12px 0;">${product.description}</p>
+                <div class="price-big">${product.price} R$</div>
+
+                <div class="seller-info">
+                    <div class="seller-avatar">${seller.name[0].toUpperCase()}</div>
+                    <div>
+                        <div style="font-weight:600;">${seller.name}</div>
+                        <small style="color:var(--text-secondary);">ID: ${seller.id}</small>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="buyProductBtn" style="margin-top:16px;width:100%;">
+                    <i class="fas fa-shopping-cart"></i> Купить за ${product.price} R$
+                </button>
+
+                <div class="reviews-section">
+                    <h4>⭐ Отзывы (${reviews.length})</h4>
+                    ${reviews.length ? reviews.map(r => `
+                        <div class="review-item">
+                            <div class="review-author">${r.author}</div>
+                            <div class="rating-stars">${'⭐'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                            <p>${r.text}</p>
+                        </div>
+                    `).join('') : '<p style="color:var(--text-secondary);">Нет отзывов</p>'}
+                </div>
+            `;
+
+            document.getElementById('buyProductBtn')?.addEventListener('click', () => buyProduct(productId));
         }
 
         // ---------- ПОКУПКА ----------
-        async function buyProduct(productId) {
-            try {
-                const result = await api('POST', '/api/buy', {
-                    productId: productId,
-                    buyerId: CURRENT_USER
-                });
-                showToast('✅ Покупка успешна! Чат создан.');
-                loadProfile();
-                loadChats();
-                navigateTo('chat');
-            } catch (e) {
-                console.error(e);
+        function buyProduct(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product) {
+                showToast('Товар не найден', true);
+                return;
             }
+
+            const balance = db.balances[CURRENT_USER] || 0;
+            if (balance < product.price) {
+                showToast('❌ Недостаточно средств!', true);
+                return;
+            }
+
+            // Списываем
+            db.balances[CURRENT_USER] = balance - product.price;
+            db.balances[product.sellerId] = (db.balances[product.sellerId] || 0) + product.price;
+
+            // Создаём чат
+            const existingChat = db.chats.find(c =>
+                (c.buyerId === CURRENT_USER && c.sellerId === product.sellerId) ||
+                (c.buyerId === product.sellerId && c.sellerId === CURRENT_USER)
+            );
+
+            if (!existingChat) {
+                db.chats.push({
+                    id: db.nextChatId++,
+                    buyerId: CURRENT_USER,
+                    sellerId: product.sellerId,
+                    productId: productId,
+                    messages: []
+                });
+            }
+
+            saveDB(db);
+            showToast('✅ Покупка успешна! Чат создан.');
+            renderProfile();
+            renderChats();
+            navigateTo('chat');
         }
 
         // ---------- ПРОФИЛЬ ----------
-        async function loadProfile() {
-            try {
-                const balance = await api('GET', `/api/balance/${CURRENT_USER}`);
-                $('profileBalance').textContent = balance.balance || 0;
-                $('profileUserId').textContent = CURRENT_USER;
-                $('currentUserIdDisplay').textContent = CURRENT_USER;
+        function renderProfile() {
+            const balance = db.balances[CURRENT_USER] || 0;
+            document.getElementById('profileBalance').textContent = balance;
 
-                const products = await api('GET', '/api/products');
-                const myProducts = products.filter(p => p.sellerId === CURRENT_USER);
+            const user = db.users.find(u => u.id === CURRENT_USER);
+            document.getElementById('profileUserName').textContent = user ? user.name : 'Вы';
+            document.getElementById('currentUserIdDisplay').textContent = user ? user.name : 'Вы';
 
-                if (!myProducts.length) {
-                    $('myProductsGrid').innerHTML = `<div class="empty-state"><i class="fas fa-box"></i><p>У вас нет товаров</p></div>`;
-                } else {
-                    $('myProductsGrid').innerHTML = myProducts.map(p => `
-                        <div class="my-product-card">
-                            <img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Roblox'">
-                            <h4>${p.name}</h4>
-                            <p style="color:var(--text-secondary);font-size:13px;">🎮 ${p.game}</p>
-                            <p style="font-weight:700;color:var(--accent);">${p.price} R$</p>
-                            <div class="product-actions">
-                                <button class="btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Изменить</button>
-                                <button class="btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
-                            </div>
+            // Мои товары
+            const myProducts = db.products.filter(p => p.sellerId === CURRENT_USER);
+
+            if (!myProducts.length) {
+                document.getElementById('myProductsGrid').innerHTML =
+                    `<div class="empty-state"><i class="fas fa-box"></i><p>У вас нет товаров</p></div>`;
+            } else {
+                document.getElementById('myProductsGrid').innerHTML = myProducts.map(p => `
+                    <div class="my-product-card">
+                        <img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Roblox'">
+                        <h4>${p.name}</h4>
+                        <p style="color:var(--text-secondary);font-size:13px;">🎮 ${p.game}</p>
+                        <p style="font-weight:700;color:var(--accent);">${p.price} R$</p>
+                        <div class="product-actions">
+                            <button class="btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Изменить</button>
+                            <button class="btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
                         </div>
-                    `).join('');
-                }
-
-                $('myReviewsContainer').innerHTML = `
-                    <div class="review-item">
-                        <div class="review-author">Игрок_228</div>
-                        <div class="rating-stars">⭐⭐⭐⭐⭐</div>
-                        <p>Отличный продавец!</p>
                     </div>
-                `;
-            } catch (e) {
-                console.error(e);
+                `).join('');
+            }
+
+            // Мои отзывы
+            const myReviews = db.reviews.filter(r => {
+                const product = db.products.find(p => p.id === r.productId);
+                return product && product.sellerId === CURRENT_USER;
+            });
+
+            if (!myReviews.length) {
+                document.getElementById('myReviewsContainer').innerHTML =
+                    `<div class="empty-state"><i class="fas fa-star"></i><p>Нет отзывов</p></div>`;
+            } else {
+                document.getElementById('myReviewsContainer').innerHTML = myReviews.map(r => `
+                    <div class="review-item">
+                        <div class="review-author">${r.author}</div>
+                        <div class="rating-stars">${'⭐'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                        <p>${r.text}</p>
+                    </div>
+                `).join('');
             }
         }
 
         // ---------- РЕДАКТИРОВАНИЕ ----------
-        window.editProduct = async function(productId) {
-            const products = await api('GET', '/api/products');
-            const product = products.find(p => p.id === productId);
+        window.editProduct = function(productId) {
+            const product = db.products.find(p => p.id === productId);
             if (!product) return;
 
             const newName = prompt('Название:', product.name);
             if (newName === null) return;
             const newDesc = prompt('Описание:', product.description);
+            if (newDesc === null) return;
             const newPrice = prompt('Цена:', product.price);
+            if (newPrice === null) return;
             const newGame = prompt('Игра:', product.game);
+            if (newGame === null) return;
 
-            await api('PUT', `/api/products/${productId}`, {
-                name: newName,
-                description: newDesc,
-                price: parseFloat(newPrice) || product.price,
-                game: newGame,
-                image: product.image
-            });
+            product.name = newName || product.name;
+            product.description = newDesc || product.description;
+            product.price = parseFloat(newPrice) || product.price;
+            product.game = newGame || product.game;
 
+            saveDB(db);
             showToast('✅ Товар обновлён!');
-            loadProfile();
-            loadProducts();
+            renderProfile();
+            renderProducts();
         };
 
-        window.deleteProduct = async function(productId) {
+        window.deleteProduct = function(productId) {
             if (!confirm('Удалить товар?')) return;
-            await api('DELETE', `/api/products/${productId}`);
+            db.products = db.products.filter(p => p.id !== productId);
+            saveDB(db);
             showToast('🗑️ Товар удалён');
-            loadProfile();
-            loadProducts();
+            renderProfile();
+            renderProducts();
         };
 
         // ---------- ПОПОЛНЕНИЕ БАЛАНСА ----------
-        $('addBalanceBtn').addEventListener('click', async () => {
-            const amount = parseFloat($('addBalanceInput').value) || 0;
+        document.getElementById('addBalanceBtn').addEventListener('click', () => {
+            const amount = parseFloat(document.getElementById('addBalanceInput').value) || 0;
             if (amount <= 0) {
                 showToast('Введите сумму > 0', true);
                 return;
             }
-            await api('POST', '/api/balance', {
-                userId: CURRENT_USER,
-                amount: amount
-            });
+            db.balances[CURRENT_USER] = (db.balances[CURRENT_USER] || 0) + amount;
+            saveDB(db);
             showToast(`💰 Баланс пополнен на ${amount} R$`);
-            loadProfile();
+            renderProfile();
         });
 
         // ---------- ПРОДАЖА ----------
-        $('showSellBtn').addEventListener('click', () => {
-            $('sellForm').classList.toggle('hidden');
+        document.getElementById('showSellBtn').addEventListener('click', () => {
+            document.getElementById('sellForm').classList.toggle('hidden');
         });
 
-        $('cancelSellBtn').addEventListener('click', () => {
-            $('sellForm').classList.add('hidden');
+        document.getElementById('cancelSellBtn').addEventListener('click', () => {
+            document.getElementById('sellForm').classList.add('hidden');
         });
 
-        $('submitProductBtn').addEventListener('click', async () => {
-            const name = $('productName').value.trim();
-            const game = $('productGame').value.trim();
-            const desc = $('productDesc').value.trim();
-            const price = parseFloat($('productPrice').value);
-            const image = $('productImage').value.trim();
+        document.getElementById('submitProductBtn').addEventListener('click', () => {
+            const name = document.getElementById('productName').value.trim();
+            const game = document.getElementById('productGame').value.trim();
+            const desc = document.getElementById('productDesc').value.trim();
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const image = document.getElementById('productImage').value.trim();
 
             if (!name || !game || !desc || !price) {
                 showToast('Заполните все поля!', true);
                 return;
             }
 
-            await api('POST', '/api/products', {
+            db.products.push({
+                id: db.nextProductId++,
                 name,
                 game,
                 description: desc,
                 price,
-                image: image || undefined,
-                sellerId: CURRENT_USER
+                image: image || 'https://via.placeholder.com/300x200?text=Roblox',
+                sellerId: CURRENT_USER,
+                createdAt: Date.now()
             });
 
+            saveDB(db);
             showToast('✅ Товар выставлен!');
-            $('sellForm').classList.add('hidden');
-            $('productName').value = '';
-            $('productGame').value = '';
-            $('productDesc').value = '';
-            $('productPrice').value = '';
-            $('productImage').value = '';
-            loadProducts();
+            document.getElementById('sellForm').classList.add('hidden');
+            document.getElementById('productName').value = '';
+            document.getElementById('productGame').value = '';
+            document.getElementById('productDesc').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productImage').value = '';
+            renderProducts();
         });
 
         // ---------- ЧАТЫ ----------
         let currentChatId = null;
-        let chats = [];
 
-        async function loadChats() {
-            try {
-                const data = await api('GET', `/api/chats/${CURRENT_USER}`);
-                chats = data;
+        function renderChats() {
+            const userChats = db.chats.filter(c =>
+                c.buyerId === CURRENT_USER || c.sellerId === CURRENT_USER
+            );
 
-                if (!chats.length) {
-                    $('chatList').innerHTML = `<div class="empty-state"><i class="fas fa-comments"></i><p>Нет чатов</p><small>Купите товар, чтобы начать общение</small></div>`;
-                    return;
-                }
+            if (!userChats.length) {
+                document.getElementById('chatList').innerHTML =
+                    `<div class="empty-state"><i class="fas fa-comments"></i><p>Нет чатов</p><small>Купите товар, чтобы начать общение</small></div>`;
+                return;
+            }
 
-                $('chatList').innerHTML = chats.map(c => {
-                    const other = c.otherUser || { name: 'Пользователь' };
-                    return `
-                        <div class="chat-list-item" data-chatid="${c.id}" onclick="selectChat(${c.id})">
-                            <div class="chat-name">${other.name}</div>
-                            <div class="chat-product">📦 ${c.product?.name || 'Товар'}</div>
-                            <small style="opacity:0.6;">${c.messages?.length || 0} сообщений</small>
-                        </div>
-                    `;
-                }).join('');
+            document.getElementById('chatList').innerHTML = userChats.map(c => {
+                const isBuyer = c.buyerId === CURRENT_USER;
+                const otherId = isBuyer ? c.sellerId : c.buyerId;
+                const otherUser = db.users.find(u => u.id === otherId) || { name: 'Пользователь' };
+                const product = db.products.find(p => p.id === c.productId) || { name: 'Товар' };
 
-                if (currentChatId) {
-                    const chat = chats.find(c => c.id === currentChatId);
-                    if (chat) selectChat(currentChatId);
-                }
-            } catch (e) {
-                console.error(e);
+                return `
+                    <div class="chat-list-item" data-chatid="${c.id}" onclick="selectChat(${c.id})">
+                        <div class="chat-name">${otherUser.name}</div>
+                        <div class="chat-product">📦 ${product.name}</div>
+                        <small style="opacity:0.6;">${c.messages?.length || 0} сообщений</small>
+                    </div>
+                `;
+            }).join('');
+
+            // Обновляем бейдж
+            const totalMsgs = userChats.reduce((acc, c) => acc + (c.messages?.length || 0), 0);
+            const badge = document.getElementById('chatBadge');
+            if (totalMsgs > 0) {
+                badge.style.display = 'inline';
+                badge.textContent = totalMsgs;
+            } else {
+                badge.style.display = 'none';
+            }
+
+            if (currentChatId) {
+                const chat = userChats.find(c => c.id === currentChatId);
+                if (chat) selectChat(currentChatId);
             }
         }
 
         window.selectChat = function(chatId) {
             currentChatId = chatId;
-            const chat = chats.find(c => c.id === chatId);
+            const chat = db.chats.find(c => c.id === chatId);
             if (!chat) return;
 
             document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
@@ -1140,7 +1225,7 @@
             if (activeEl) activeEl.classList.add('active');
 
             const messages = chat.messages || [];
-            $('chatMessages').innerHTML = messages.map(msg => {
+            document.getElementById('chatMessages').innerHTML = messages.map(msg => {
                 const isOwn = msg.userId === CURRENT_USER;
                 const time = msg.time ? new Date(msg.time).toLocaleTimeString() : '';
                 return `
@@ -1152,82 +1237,92 @@
                 `;
             }).join('');
 
-            $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
-            $('chatInputArea').style.display = 'flex';
-
-            socket.emit('join_chat', chatId);
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+            document.getElementById('chatInputArea').style.display = 'flex';
         };
 
         // ---------- ОТПРАВКА СООБЩЕНИЙ ----------
         function sendMessage() {
-            const text = $('chatMessageInput').value.trim();
-            const file = $('chatImageInput').files[0];
+            const input = document.getElementById('chatMessageInput');
+            const text = input.value.trim();
+            const fileInput = document.getElementById('chatImageInput');
+            const file = fileInput.files[0];
 
             if (!text && !file) return;
+
+            const chat = db.chats.find(c => c.id === currentChatId);
+            if (!chat) return;
 
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    socket.emit('send_message', {
-                        chatId: currentChatId,
+                    chat.messages.push({
+                        id: Date.now(),
                         userId: CURRENT_USER,
                         text: text || '',
-                        image: e.target.result
+                        image: e.target.result,
+                        time: new Date().toISOString()
                     });
-                    $('chatMessageInput').value = '';
-                    $('chatImageInput').value = '';
+                    saveDB(db);
+                    input.value = '';
+                    fileInput.value = '';
+                    renderChats();
+                    selectChat(currentChatId);
                 };
                 reader.readAsDataURL(file);
             } else {
-                socket.emit('send_message', {
-                    chatId: currentChatId,
+                chat.messages.push({
+                    id: Date.now(),
                     userId: CURRENT_USER,
                     text: text,
-                    image: null
+                    image: null,
+                    time: new Date().toISOString()
                 });
-                $('chatMessageInput').value = '';
+                saveDB(db);
+                input.value = '';
+                renderChats();
+                selectChat(currentChatId);
             }
         }
 
-        $('sendMessageBtn').addEventListener('click', sendMessage);
-        $('chatMessageInput').addEventListener('keydown', (e) => {
+        document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+        document.getElementById('chatMessageInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
 
-        // ---------- ПОЛУЧЕНИЕ СООБЩЕНИЙ ----------
-        socket.on('new_message', (data) => {
-            if (data.chatId === currentChatId) {
-                const msg = data.message;
-                const isOwn = msg.userId === CURRENT_USER;
-                const time = msg.time ? new Date(msg.time).toLocaleTimeString() : '';
+        // ---------- ТЕМА ----------
+        let darkMode = localStorage.getItem('theme') === 'dark';
+        if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
 
-                const msgDiv = document.createElement('div');
-                msgDiv.className = `message ${isOwn ? 'own' : 'other'}`;
-                msgDiv.innerHTML = `
-                    ${msg.text || ''}
-                    ${msg.image ? `<img src="${msg.image}" alt="image">` : ''}
-                    <span class="msg-time">${time}</span>
-                `;
-                $('chatMessages').appendChild(msgDiv);
-                $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
-            }
-            loadChats();
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            darkMode = !darkMode;
+            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : '');
+            localStorage.setItem('theme', darkMode ? 'dark' : '');
+            document.getElementById('themeToggle').innerHTML = `<i class="fas fa-${darkMode ? 'sun' : 'moon'}"></i>`;
         });
 
-        socket.on('new_purchase', (data) => {
-            showToast(`🛒 ${data.productName || 'Товар'} куплен!`);
-            loadChats();
-            loadProducts();
+        // ---------- НАВИГАЦИЯ ----------
+        document.querySelectorAll('.nav-links a[data-page]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo(link.dataset.page);
+            });
+        });
+
+        document.querySelectorAll('.back-btn[data-page]').forEach(btn => {
+            btn.addEventListener('click', () => navigateTo(btn.dataset.page));
         });
 
         // ---------- ЗАПУСК ----------
-        $('currentUserIdDisplay').textContent = CURRENT_USER;
-        loadProducts();
-        loadProfile();
-        loadChats();
+        renderProducts();
+        renderProfile();
+        renderChats();
 
         console.log('🎮 Roblox Market запущен!');
-        console.log(`👤 ID пользователя: ${CURRENT_USER}`);
+        console.log('📦 Данные хранятся в localStorage');
+        console.log('👤 Вы продавец с ID: 1');
+        console.log('💰 Ваш баланс:', db.balances[CURRENT_USER]);
     </script>
+
 </body>
 </html>
