@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Roblox Market</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== ВСЕ СТИЛИ ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --border-color: #e1e5eb;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --accent: #5865f2;
+            --accent-hover: #4752c4;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --radius: 12px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #24243a;
+            --text-primary: #e8e8f0;
+            --text-secondary: #b0b0c8;
+            --border-color: #3a3a55;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+            --accent: #7986f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Навигация */
+        .navbar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .theme-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .user-badge {
+            background: var(--accent);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Контейнер */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Карточки товаров */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-section h2 {
+            font-size: 28px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.8;
+        }
+
+        .sell-form {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sell-form input,
+        .sell-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .sell-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 1px solid var(--border-color);
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: var(--bg-primary);
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .product-info h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-info .game-tag {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .product-info .price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* Детали товара */
+        .product-detail {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .product-detail img {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+
+        .product-detail .price-big {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 16px;
+        }
+
+        .seller-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .reviews-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .review-item {
+            background: var(--bg-primary);
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .review-item .review-author {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .rating-stars {
+            color: #f1c40f;
+            letter-spacing: 2px;
+        }
+
+        /* Профиль */
+        .profile-header {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .profile-balance {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .profile-balance small {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .balance-actions input {
+            padding: 8px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            width: 120px;
+        }
+
+        .my-products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .my-product-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        .my-product-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .my-product-card .product-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .my-product-card .product-actions button {
+            flex: 1;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #e67e22;
+        }
+
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Чат */
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            height: 70vh;
+            min-height: 400px;
+        }
+
+        .chat-list {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 12px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-list-item {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chat-list-item:hover {
+            background: var(--bg-primary);
+        }
+
+        .chat-list-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .chat-list-item .chat-name {
+            font-weight: 600;
+        }
+
+        .chat-list-item .chat-product {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .chat-window {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 300px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 16px;
+            border-radius: 16px;
+            word-wrap: break-word;
+        }
+
+        .message.own {
+            background: var(--accent);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.other {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message img {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 6px;
+        }
+
+        .message .msg-time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+        }
+
+        .chat-input-area input[type="text"] {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .chat-input-area input[type="file"] {
+            display: none;
+        }
+
+        .chat-input-area label {
+            padding: 10px 14px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .chat-input-area label:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .chat-input-area button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .chat-input-area button:hover {
+            background: var(--accent-hover);
+        }
+
+        .no-chat-selected {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        .back-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 14px 24px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chat-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .chat-list {
+                max-height: 200px;
+            }
+
+            .chat-window {
+                min-height: 400px;
+            }
+
+            .nav-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-links {
+                justify-content: center;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== НАВИГАЦИЯ ===== -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo"><i class="fas fa-gamepad"></i> Roblox Market</div>
+            <div class="nav-links">
+                <a data-page="home" class="active"><i class="fas fa-home"></i> Главная</a>
+                <a data-page="profile"><i class="fas fa-user"></i> Профиль</a>
+                <a data-page="chat"><i class="fas fa-comment-dots"></i> Чаты <span id="chatBadge" style="background:red;color:white;border-radius:50%;padding:0 6px;font-size:12px;display:none;">0</span></a>
+                <button class="theme-btn" id="themeToggle"><i class="fas fa-moon"></i></button>
+                <span class="user-badge"><i class="fas fa-id-card"></i> ID: <span id="currentUserIdDisplay">2</span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== ОСНОВНОЙ КОНТЕЙНЕР ===== -->
+    <div class="container">
+
+        <!-- ГЛАВНАЯ -->
+        <div id="page-home" class="page active">
+            <div class="header-section">
+                <h2>🔥 Товары</h2>
+                <button class="btn-primary" id="showSellBtn"><i class="fas fa-plus"></i> Продать товар</button>
+            </div>
+
+            <div id="sellForm" class="sell-form hidden">
+                <h3>📦 Выставить товар</h3>
+                <input type="text" id="productName" placeholder="Название товара">
+                <input type="text" id="productGame" placeholder="Игра (например: Blox Fruits)">
+                <textarea id="productDesc" placeholder="Описание"></textarea>
+                <input type="number" id="productPrice" placeholder="Цена (R$)">
+                <input type="text" id="productImage" placeholder="Ссылка на картинку">
+                <button class="btn-primary" id="submitProductBtn">Опубликовать</button>
+                <button class="btn-danger" id="cancelSellBtn" style="margin-left:10px;">Отмена</button>
+            </div>
+
+            <div id="productsGrid" class="products-grid"></div>
+        </div>
+
+        <!-- СТРАНИЦА ТОВАРА -->
+        <div id="page-product" class="page">
+            <button class="back-btn" data-page="home"><i class="fas fa-arrow-left"></i> Назад</button>
+            <div id="productDetailContainer" class="product-detail"></div>
+        </div>
+
+        <!-- ПРОФИЛЬ -->
+        <div id="page-profile" class="page">
+            <div class="profile-header">
+                <div>
+                    <h2><i class="fas fa-user-circle"></i> Мой профиль</h2>
+                    <p style="color:var(--text-secondary);">ID: <strong id="profileUserId">2</strong></p>
+                </div>
+                <div>
+                    <div class="profile-balance">
+                        <small>Баланс:</small> <span id="profileBalance">0</span> R$
+                    </div>
+                    <div class="balance-actions" style="margin-top:8px;">
+                        <input type="number" id="addBalanceInput" placeholder="Сумма" value="100">
+                        <button class="btn-primary" id="addBalanceBtn"><i class="fas fa-plus"></i> Пополнить</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>📦 Мои товары</h3>
+            <div id="myProductsGrid" class="my-products-grid"></div>
+
+            <h3 style="margin-top:30px;">⭐ Мои отзывы</h3>
+            <div id="myReviewsContainer"></div>
+        </div>
+
+        <!-- ЧАТ -->
+        <div id="page-chat" class="page">
+            <div class="chat-layout">
+                <div class="chat-list" id="chatList">
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <p>Нет чатов</p>
+                        <small>Купите товар, чтобы начать общение</small>
+                    </div>
+                </div>
+                <div class="chat-window" id="chatWindow">
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="no-chat-selected">
+                            <div style="text-align:center;">
+                                <i class="fas fa-comment-dots" style="font-size:40px;opacity:0.3;"></i>
+                                <p style="margin-top:10px;">Выберите чат слева</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area" id="chatInputArea" style="display:none;">
+                        <input type="text" id="chatMessageInput" placeholder="Введите сообщение...">
+                        <label for="chatImageInput"><i class="fas fa-image"></i></label>
+                        <input type="file" id="chatImageInput" accept="image/*">
+                        <button id="sendMessageBtn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // =====================================================
+        // ====== ВСЯ ЛОГИКА ======
+        // =====================================================
+
+        const CURRENT_USER = 2;
+
+        // ---------- СОКЕТ ----------
+        const socket = io('http://localhost:3000');
+
+        // ---------- DOM ----------
+        const $ = id => document.getElementById(id);
+        const pages = {
+            home: $('page-home'),
+            product: $('page-product'),
+            profile: $('page-profile'),
+            chat: $('page-chat')
+        };
+
+        // ---------- ТЕМА ----------
+        let darkMode = localStorage.getItem('theme') === 'dark';
+        if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
+        $('themeToggle').addEventListener('click', () => {
+            darkMode = !darkMode;
+            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : '');
+            localStorage.setItem('theme', darkMode ? 'dark' : '');
+            $('themeToggle').innerHTML = `<i class="fas fa-${darkMode ? 'sun' : 'moon'}"></i>`;
+        });
+
+        // ---------- НАВИГАЦИЯ ----------
+        function navigateTo(page, data) {
+            Object.values(pages).forEach(p => p.classList.remove('active'));
+            if (pages[page]) pages[page].classList.add('active');
+
+            document.querySelectorAll('.nav-links a[data-page]').forEach(a => a.classList.remove('active'));
+            const link = document.querySelector(`.nav-links a[data-page="${page}"]`);
+            if (link) link.classList.add('active');
+
+            if (page === 'home') loadProducts();
+            if (page === 'profile') loadProfile();
+            if (page === 'chat') loadChats();
+            if (page === 'product' && data) loadProductDetail(data);
+        }
+
+        document.querySelectorAll('.nav-links a[data-page]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo(link.dataset.page);
+            });
+        });
+
+        document.querySelectorAll('.back-btn[data-page]').forEach(btn => {
+            btn.addEventListener('click', () => navigateTo(btn.dataset.page));
+        });
+
+        // ---------- TOAST ----------
+        function showToast(msg, isError = false) {
+            const old = document.querySelector('.toast');
+            if (old) old.remove();
+            const div = document.createElement('div');
+            div.className = 'toast';
+            div.style.borderLeft = `4px solid ${isError ? '#e74c3c' : '#2ecc71'}`;
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // ---------- API ----------
+        async function api(method, url, body) {
+            try {
+                const opts = { method, headers: { 'Content-Type': 'application/json' } };
+                if (body) opts.body = JSON.stringify(body);
+                const res = await fetch(url, opts);
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Ошибка запроса');
+                }
+                return await res.json();
+            } catch (e) {
+                showToast('❌ ' + e.message, true);
+                throw e;
+            }
+        }
+
+        // ---------- ЗАГРУЗКА ТОВАРОВ ----------
+        async function loadProducts() {
+            try {
+                const products = await api('GET', '/api/products');
+                if (!products.length) {
+                    $('productsGrid').innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Нет товаров</p></div>`;
+                    return;
+                }
+                $('productsGrid').innerHTML = products.map(p => `
+                    <div class="product-card" onclick="navigateTo('product', ${p.id})">
+                        <img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Roblox'">
+                        <div class="product-info">
+                            <h3>${p.name}</h3>
+                            <p class="game-tag">🎮 ${p.game}</p>
+                            <p class="price">${p.price} R$</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // ---------- ДЕТАЛИ ТОВАРА ----------
+        async function loadProductDetail(productId) {
+            try {
+                const data = await api('GET', `/api/products/${productId}`);
+                const seller = data.seller || { name: 'Продавец' };
+                const reviews = data.reviews || [];
+
+                $('productDetailContainer').innerHTML = `
+                    <img src="${data.image}" alt="${data.name}" onerror="this.src='https://via.placeholder.com/600x350?text=Roblox'">
+                    <h2>${data.name}</h2>
+                    <p style="color:var(--text-secondary);">🎮 ${data.game}</p>
+                    <p style="font-size:16px;margin:12px 0;">${data.description}</p>
+                    <div class="price-big">${data.price} R$</div>
+
+                    <div class="seller-info">
+                        <div class="seller-avatar">${seller.name[0].toUpperCase()}</div>
+                        <div>
+                            <div style="font-weight:600;">${seller.name}</div>
+                            <small style="color:var(--text-secondary);">ID: ${seller.id}</small>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" id="buyProductBtn" style="margin-top:16px;width:100%;">
+                        <i class="fas fa-shopping-cart"></i> Купить за ${data.price} R$
+                    </button>
+
+                    <div class="reviews-section">
+                        <h4>⭐ Отзывы (${reviews.length})</h4>
+                        ${reviews.length ? reviews.map(r => `
+                            <div class="review-item">
+                                <div class="review-author">${r.author}</div>
+                                <div class="rating-stars">${'⭐'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                                <p>${r.text}</p>
+                            </div>
+                        `).join('') : '<p style="color:var(--text-secondary);">Нет отзывов</p>'}
+                    </div>
+                `;
+
+                $('buyProductBtn')?.addEventListener('click', () => buyProduct(productId));
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // ---------- ПОКУПКА ----------
+        async function buyProduct(productId) {
+            try {
+                const result = await api('POST', '/api/buy', {
+                    productId: productId,
+                    buyerId: CURRENT_USER
+                });
+                showToast('✅ Покупка успешна! Чат создан.');
+                loadProfile();
+                loadChats();
+                navigateTo('chat');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // ---------- ПРОФИЛЬ ----------
+        async function loadProfile() {
+            try {
+                const balance = await api('GET', `/api/balance/${CURRENT_USER}`);
+                $('profileBalance').textContent = balance.balance || 0;
+                $('profileUserId').textContent = CURRENT_USER;
+                $('currentUserIdDisplay').textContent = CURRENT_USER;
+
+                const products = await api('GET', '/api/products');
+                const myProducts = products.filter(p => p.sellerId === CURRENT_USER);
+
+                if (!myProducts.length) {
+                    $('myProductsGrid').innerHTML = `<div class="empty-state"><i class="fas fa-box"></i><p>У вас нет товаров</p></div>`;
+                } else {
+                    $('myProductsGrid').innerHTML = myProducts.map(p => `
+                        <div class="my-product-card">
+                            <img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Roblox'">
+                            <h4>${p.name}</h4>
+                            <p style="color:var(--text-secondary);font-size:13px;">🎮 ${p.game}</p>
+                            <p style="font-weight:700;color:var(--accent);">${p.price} R$</p>
+                            <div class="product-actions">
+                                <button class="btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Изменить</button>
+                                <button class="btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                $('myReviewsContainer').innerHTML = `
+                    <div class="review-item">
+                        <div class="review-author">Игрок_228</div>
+                        <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+                        <p>Отличный продавец!</p>
+                    </div>
+                `;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // ---------- РЕДАКТИРОВАНИЕ ----------
+        window.editProduct = async function(productId) {
+            const products = await api('GET', '/api/products');
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const newName = prompt('Название:', product.name);
+            if (newName === null) return;
+            const newDesc = prompt('Описание:', product.description);
+            const newPrice = prompt('Цена:', product.price);
+            const newGame = prompt('Игра:', product.game);
+
+            await api('PUT', `/api/products/${productId}`, {
+                name: newName,
+                description: newDesc,
+                price: parseFloat(newPrice) || product.price,
+                game: newGame,
+                image: product.image
+            });
+
+            showToast('✅ Товар обновлён!');
+            loadProfile();
+            loadProducts();
+        };
+
+        window.deleteProduct = async function(productId) {
+            if (!confirm('Удалить товар?')) return;
+            await api('DELETE', `/api/products/${productId}`);
+            showToast('🗑️ Товар удалён');
+            loadProfile();
+            loadProducts();
+        };
+
+        // ---------- ПОПОЛНЕНИЕ БАЛАНСА ----------
+        $('addBalanceBtn').addEventListener('click', async () => {
+            const amount = parseFloat($('addBalanceInput').value) || 0;
+            if (amount <= 0) {
+                showToast('Введите сумму > 0', true);
+                return;
+            }
+            await api('POST', '/api/balance', {
+                userId: CURRENT_USER,
+                amount: amount
+            });
+            showToast(`💰 Баланс пополнен на ${amount} R$`);
+            loadProfile();
+        });
+
+        // ---------- ПРОДАЖА ----------
+        $('showSellBtn').addEventListener('click', () => {
+            $('sellForm').classList.toggle('hidden');
+        });
+
+        $('cancelSellBtn').addEventListener('click', () => {
+            $('sellForm').classList.add('hidden');
+        });
+
+        $('submitProductBtn').addEventListener('click', async () => {
+            const name = $('productName').value.trim();
+            const game = $('productGame').value.trim();
+            const desc = $('productDesc').value.trim();
+            const price = parseFloat($('productPrice').value);
+            const image = $('productImage').value.trim();
+
+            if (!name || !game || !desc || !price) {
+                showToast('Заполните все поля!', true);
+                return;
+            }
+
+            await api('POST', '/api/products', {
+                name,
+                game,
+                description: desc,
+                price,
+                image: image || undefined,
+                sellerId: CURRENT_USER
+            });
+
+            showToast('✅ Товар выставлен!');
+            $('sellForm').classList.add('hidden');
+            $('productName').value = '';
+            $('productGame').value = '';
+            $('productDesc').value = '';
+            $('productPrice').value = '';
+            $('productImage').value = '';
+            loadProducts();
+        });
+
+        // ---------- ЧАТЫ ----------
+        let currentChatId = null;
+        let chats = [];
+
+        async function loadChats() {
+            try {
+                const data = await api('GET', `/api/chats/${CURRENT_USER}`);
+                chats = data;
+
+                if (!chats.length) {
+                    $('chatList').innerHTML = `<div class="empty-state"><i class="fas fa-comments"></i><p>Нет чатов</p><small>Купите товар, чтобы начать общение</small></div>`;
+                    return;
+                }
+
+                $('chatList').innerHTML = chats.map(c => {
+                    const other = c.otherUser || { name: 'Пользователь' };
+                    return `
+                        <div class="chat-list-item" data-chatid="${c.id}" onclick="selectChat(${c.id})">
+                            <div class="chat-name">${other.name}</div>
+                            <div class="chat-product">📦 ${c.product?.name || 'Товар'}</div>
+                            <small style="opacity:0.6;">${c.messages?.length || 0} сообщений</small>
+                        </div>
+                    `;
+                }).join('');
+
+                if (currentChatId) {
+                    const chat = chats.find(c => c.id === currentChatId);
+                    if (chat) selectChat(currentChatId);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        window.selectChat = function(chatId) {
+            currentChatId = chatId;
+            const chat = chats.find(c => c.id === chatId);
+            if (!chat) return;
+
+            document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
+            const activeEl = document.querySelector(`.chat-list-item[data-chatid="${chatId}"]`);
+            if (activeEl) activeEl.classList.add('active');
+
+            const messages = chat.messages || [];
+            $('chatMessages').innerHTML = messages.map(msg => {
+                const isOwn = msg.userId === CURRENT_USER;
+                const time = msg.time ? new Date(msg.time).toLocaleTimeString() : '';
+                return `
+                    <div class="message ${isOwn ? 'own' : 'other'}">
+                        ${msg.text || ''}
+                        ${msg.image ? `<img src="${msg.image}" alt="image">` : ''}
+                        <span class="msg-time">${time}</span>
+                    </div>
+                `;
+            }).join('');
+
+            $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+            $('chatInputArea').style.display = 'flex';
+
+            socket.emit('join_chat', chatId);
+        };
+
+        // ---------- ОТПРАВКА СООБЩЕНИЙ ----------
+        function sendMessage() {
+            const text = $('chatMessageInput').value.trim();
+            const file = $('chatImageInput').files[0];
+
+            if (!text && !file) return;
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    socket.emit('send_message', {
+                        chatId: currentChatId,
+                        userId: CURRENT_USER,
+                        text: text || '',
+                        image: e.target.result
+                    });
+                    $('chatMessageInput').value = '';
+                    $('chatImageInput').value = '';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                socket.emit('send_message', {
+                    chatId: currentChatId,
+                    userId: CURRENT_USER,
+                    text: text,
+                    image: null
+                });
+                $('chatMessageInput').value = '';
+            }
+        }
+
+        $('sendMessageBtn').addEventListener('click', sendMessage);
+        $('chatMessageInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // ---------- ПОЛУЧЕНИЕ СООБЩЕНИЙ ----------
+        socket.on('new_message', (data) => {
+            if (data.chatId === currentChatId) {
+                const msg = data.message;
+                const isOwn = msg.userId === CURRENT_USER;
+                const time = msg.time ? new Date(msg.time).toLocaleTimeString() : '';
+
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `message ${isOwn ? 'own' : 'other'}`;
+                msgDiv.innerHTML = `
+                    ${msg.text || ''}
+                    ${msg.image ? `<img src="${msg.image}" alt="image">` : ''}
+                    <span class="msg-time">${time}</span>
+                `;
+                $('chatMessages').appendChild(msgDiv);
+                $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+            }
+            loadChats();
+        });
+
+        socket.on('new_purchase', (data) => {
+            showToast(`🛒 ${data.productName || 'Товар'} куплен!`);
+            loadChats();
+            loadProducts();
+        });
+
+        // ---------- ЗАПУСК ----------
+        $('currentUserIdDisplay').textContent = CURRENT_USER;
+        loadProducts();
+        loadProfile();
+        loadChats();
+
+        console.log('🎮 Roblox Market запущен!');
+        console.log(`👤 ID пользователя: ${CURRENT_USER}`);
+    </script>
+</body>
+</html>
